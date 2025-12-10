@@ -10,10 +10,37 @@ class TodoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Newest tasks first so recent items stay on top.
-        $todos = Todo::latest()->get();
+        $query = Todo::query();
+
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhere('tags', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->has('priority') && $request->priority !== 'all') {
+            $query->where('priority', $request->priority);
+        }
+
+        if ($request->has('status') && $request->status !== 'all') {
+            if ($request->status === 'completed') {
+                $query->where('is_done', true);
+            } elseif ($request->status === 'pending') {
+                $query->where('is_done', false);
+            }
+        }
+
+        // Apply sorting: By due date (soonest first), then by priority (High -> Low), then newest.
+        $todos = $query
+            ->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END, due_date ASC')
+            ->orderByRaw("CASE WHEN priority = 'high' THEN 1 WHEN priority = 'medium' THEN 2 WHEN priority = 'low' THEN 3 ELSE 4 END")
+            ->latest()
+            ->get();
 
         return view('todos.index', compact('todos'));
     }
@@ -31,16 +58,18 @@ class TodoController extends Controller
      */
     public function store(Request $request)
     {
-        // Guard against empty/invalid data before saving.
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'priority' => ['required', 'in:high,medium,low'],
+            'due_date' => ['nullable', 'date'],
+            'tags' => ['nullable', 'string'],
         ]);
 
         Todo::create($data);
 
         return redirect()->route('todos.index')->with(
-            $this->toast('Todo created.', 'success', 'Added')
+            $this->toast('Todo created successfully.', 'success', 'Added')
         );
     }
 
@@ -60,6 +89,9 @@ class TodoController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'priority' => ['required', 'in:high,medium,low'],
+            'due_date' => ['nullable', 'date'],
+            'tags' => ['nullable', 'string'],
             'is_done' => ['nullable', 'boolean'],
         ]);
 
@@ -69,16 +101,23 @@ class TodoController extends Controller
         $todo->update($data);
 
         return redirect()->route('todos.index')->with(
-            $this->toast('Todo updated.', 'success', 'Updated')
+            $this->toast('Todo updated successfully.', 'success', 'Updated')
         );
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Todo $todo)
+    public function destroy(Request $request, Todo $todo)
     {
         $todo->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Todo deleted.',
+                'tone' => 'danger',
+            ]);
+        }
 
         return redirect()->route('todos.index')->with(
             $this->toast('Todo deleted.', 'danger', 'Removed')
@@ -88,13 +127,21 @@ class TodoController extends Controller
     /**
      * Toggle completion flag without opening the edit form.
      */
-    public function toggle(Todo $todo)
+    public function toggle(Request $request, Todo $todo)
     {
-        $nextState = ! $todo->is_done;
+        $nextState = !$todo->is_done;
 
         $todo->update([
             'is_done' => $nextState,
         ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => $nextState ? 'Marked as done.' : 'Marked as pending.',
+                'tone' => $nextState ? 'success' : 'info',
+                'is_done' => $nextState,
+            ]);
+        }
 
         return redirect()->route('todos.index')->with(
             $this->toast(

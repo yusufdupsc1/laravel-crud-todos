@@ -1,86 +1,170 @@
 @extends('layouts.app')
 
 @section('content')
-    @php
-        $done = $todos->where('is_done', true)->count();
-        $pending = $todos->count() - $done;
-    @endphp
-
-    <div class="card">
-        <div class="row spread">
-            <div>
-                <h1>Todos</h1>
-                <p class="muted">Simple, focused task list.</p>
-            </div>
-            <div class="row">
-                <span class="badge pending">Pending {{ $pending }}</span>
-                <span class="badge done">Done {{ $done }}</span>
-            </div>
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1
+                class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-rose-500 to-purple-600">
+                Todo List</h1>
+            <p class="text-slate-500 mt-1 font-medium">{{ count($todos) }} tasks remaining</p>
         </div>
+        <a href="{{ route('todos.create') }}"
+            class="group relative inline-flex items-center justify-center px-6 py-3 text-sm font-bold text-white transition-all duration-200 bg-gradient-to-r from-rose-500 to-orange-500 rounded-xl hover:from-rose-600 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 shadow-lg shadow-rose-200">
+            <span>New Task</span>
+            <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" class="stroke-current"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+        </a>
     </div>
 
-    <div class="card">
-        <form action="{{ route('todos.store') }}" method="POST">
-            @csrf
-            <div class="field">
-                <label for="title">Title</label>
-                <input id="title" name="title" type="text" required maxlength="255" placeholder="Buy groceries" value="{{ old('title') }}">
+    <!-- Search & Filters -->
+    <div class="glass p-4 rounded-2xl mb-8 shadow-sm">
+        <form method="GET" action="{{ route('todos.index') }}" class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1 relative">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search tasks..." <input
+                    type="text" name="search" value="{{ request('search') }}" placeholder="Search tasks..."
+                    class="w-full pl-10 pr-4 py-2.5 bg-white/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all outline-none text-sm">
             </div>
-
-            <div class="field">
-                <label for="description">Description (optional)</label>
-                <textarea id="description" name="description" rows="2" placeholder="Milk, eggs, bread">{{ old('description') }}</textarea>
+            <div class="flex gap-4">
+                <select name="priority"
+                    class="px-4 py-2.5 bg-white/50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 outline-none cursor-pointer"
+                    onchange="this.form.submit()">
+                    <option value="all">All Priorities</option>
+                    <option value="high" {{ request('priority') == 'high' ? 'selected' : '' }}>High Priority
+                    </option>
+                    <option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}>Medium Priority
+                    </option>
+                    <option value="low" {{ request('priority') == 'low' ? 'selected' : '' }}>Low Priority</option>
+                </select>
+                <select name="status"
+                    class="px-4 py-2.5 bg-white/50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 outline-none cursor-pointer"
+                    onchange="this.form.submit()">
+                    <option value="all">All Status</option>
+                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending
+                    </option>
+                    <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed
+                    </option>
+                </select>
             </div>
-
-            <div class="row spread">
-                <p class="muted">Keep it actionable.</p>
-                <button type="submit" class="btn btn-primary">Add Todo</button>
-            </div>
-
-            @if ($errors->any())
-                <div class="muted">Please fix the highlighted issues.</div>
-            @endif
         </form>
     </div>
 
-    <div class="card">
-        <div class="todo-grid">
-            @forelse ($todos as $todo)
-                <div class="todo-card">
-                    <div class="row spread">
-                        <strong>{{ $todo->title }}</strong>
-                        <span class="badge {{ $todo->is_done ? 'done' : 'pending' }}">
-                            {{ $todo->is_done ? 'Done' : 'Pending' }}
-                        </span>
-                    </div>
-
-                    @if($todo->description)
-                        <div class="muted">{{ $todo->description }}</div>
-                    @endif
-
-                    <div class="muted">Updated {{ $todo->updated_at->diffForHumans() }}</div>
-
-                    <div class="row">
-                        <form action="{{ route('todos.toggle', $todo) }}" method="POST">
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit" class="btn btn-ghost">
-                                {{ $todo->is_done ? 'Mark Pending' : 'Mark Done' }}
+    @if(count($todos) > 0)
+        <div class="grid gap-4">
+            @foreach($todos as $todo)
+                <div
+                    class="todo-card group relative bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl {{ $todo->is_done ? 'opacity-60 bg-slate-50' : '' }}">
+                    <div class="flex items-start gap-4">
+                        <!-- Custom Checkbox Form -->
+                        <form action="{{ route('todos.toggle', $todo) }}" method="POST" class="mt-1">
+                            @csrf @method('PATCH')
+                            <button type="submit"
+                                class="ajax-toggle w-6 h-6 rounded-full border-2 flex items-center justify-center {{ $todo->is_done ? 'bg-rose-500 border-rose-500' : 'border-slate-300 group-hover:border-rose-500' }}">
+                                @if($todo->is_done)
+                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                @endif
                             </button>
                         </form>
 
-                        <a class="btn btn-ghost" href="{{ route('todos.edit', $todo) }}">Edit</a>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-3 mb-1">
+                                <h3
+                                    class="font-bold text-lg text-slate-800 {{ $todo->is_done ? 'line-through text-slate-400' : '' }}">
+                                    {{ $todo->title }}
+                                </h3>
+                                <!-- Priority Badge -->
+                                @php
+                                    $pColor = match ($todo->priority) {
+                                        'high' => 'bg-rose-50 text-rose-600 border-rose-100',
+                                        'medium' => 'bg-amber-50 text-amber-600 border-amber-100',
+                                        'low' => 'bg-slate-50 text-slate-600 border-slate-100',
+                                        default => 'bg-slate-50 text-slate-600 border-slate-100'
+                                    };
+                                @endphp
+                                <span
+                                    class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border {{ $pColor }}">
+                                    {{ $todo->priority }}
+                                </span>
+                            </div>
 
-                        <form action="{{ route('todos.destroy', $todo) }}" method="POST" onsubmit="return confirm('Delete this todo?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">Delete</button>
-                        </form>
+                            @if($todo->description)
+                                <p class="text-slate-600 text-sm mb-3 {{ $todo->is_done ? 'line-through text-slate-400' : '' }}">
+                                    {{ $todo->description }}
+                                </p>
+                            @endif
+
+                            <div class="flex items-center gap-4 text-xs font-medium text-slate-400">
+                                @if($todo->due_date)
+                                    <div
+                                        class="flex items-center gap-1.5 {{ $todo->due_date->isPast() && !$todo->is_done ? 'text-rose-500' : '' }}">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                            </path>
+                                        </svg>
+                                        {{ $todo->due_date->format('M j, Y') }}
+                                    </div>
+                                @endif
+
+                                @if($todo->tags)
+                                    <div class="flex items-center gap-2">
+                                        @foreach(explode(',', $todo->tags) as $tag)
+                                            <span
+                                                class="px-2 py-1 bg-slate-100 rounded text-slate-500 border border-slate-200">#{{ trim($tag) }}</span>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <a href="{{ route('todos.edit', $todo) }}"
+                                class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                title="Edit">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                    </path>
+                                </svg>
+                            </a>
+
+                            <form action="{{ route('todos.destroy', $todo) }}" method="POST">
+                                @csrf @method('DELETE')
+                                <button type="submit"
+                                    class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                    title="Delete">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                        </path>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            @empty
-                <p class="muted">No todos yet. Add your first one above.</p>
-            @endforelse
+            @endforeach
         </div>
-    </div>
+    @else
+        <div class="text-center py-20 px-4 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50">
+            <div class="bg-rose-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-rose-500">
+                <svg class="w-8 h-8" fill="none" class="stroke-current" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4">
+                    </path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">No tasks found</h3>
+            <p class="text-slate-500 mt-1 max-w-sm mx-auto">Get started by creating a new task above.</p>
+        </div>
+    @endif
 @endsection

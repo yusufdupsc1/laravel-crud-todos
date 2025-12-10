@@ -1,138 +1,234 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-slate-50 antialiased">
+
 <head>
     <meta charset="UTF-8">
-    <title>Todo CRUD</title>
-    <!-- Lightweight, mac-inspired but simple styles -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ config('app.name', 'Laravel') }}</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
     <style>
-        :root {
-            font-family: "Inter", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            color: #0f172a;
-            background: #f5f7fb;
-            --accent: #0a84ff;
-            --accent-strong: #0060df;
-            --danger: #f04438;
+        [x-cloak] {
+            display: none !important;
         }
-        * { box-sizing: border-box; }
+
         body {
-            margin: 0;
-            padding: 32px 20px 40px;
-            background:
-                radial-gradient(circle at 15% 20%, rgba(10, 132, 255, 0.08), transparent 30%),
-                radial-gradient(circle at 80% 0%, rgba(239, 68, 68, 0.08), transparent 28%),
-                #f5f7fb;
-            color: #0f172a;
+            font-family: 'Inter', sans-serif;
         }
-        a { color: inherit; }
-        .shell { max-width: 900px; margin: 0 auto; }
-        .page { display: grid; gap: 18px; }
-        h1 { margin: 0; font-size: 26px; letter-spacing: 0.1px; }
-        .muted { color: #6b7280; font-size: 14px; }
-        .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .spread { justify-content: space-between; }
-        .card {
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 18px 20px;
-            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: 'Outfit', sans-serif;
         }
-        .badge { padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid #e5e7eb; }
-        .badge.done { background: #ecfdf3; color: #166534; }
-        .badge.pending { background: #fef3c7; color: #92400e; }
-        form { display: grid; gap: 12px; }
-        .field { display: grid; gap: 6px; }
-        label { font-weight: 700; }
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 11px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 10px;
-            background: #f8fafc;
-            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
-        input[type="text"]:focus, textarea:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); background: #fff; }
-        textarea { resize: vertical; min-height: 80px; }
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px; border: 1px solid transparent; font-weight: 700; cursor: pointer; text-decoration: none; transition: transform 0.12s ease, box-shadow 0.2s ease; }
-        .btn:hover { transform: translateY(-1px); }
-        .btn:active { transform: translateY(0); }
-        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-strong)); color: #fff; box-shadow: 0 10px 24px rgba(37, 99, 235, 0.25); }
-        .btn-ghost { background: #fff; border-color: #e5e7eb; color: #0f172a; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08); }
-        .btn-danger { background: linear-gradient(135deg, #fb5a4d, var(--danger)); color: #fff; box-shadow: 0 10px 24px rgba(240, 68, 56, 0.28); }
-        .todo-grid { display: grid; gap: 12px; margin-top: 8px; }
-        .todo-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px 16px; background: #fff; box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06); display: grid; gap: 8px; }
-        .toast { position: fixed; top: 18px; right: 18px; min-width: 260px; max-width: 360px; padding: 12px 14px; border-radius: 12px; background: #0f172a; color: #f8fafc; display: none; gap: 10px; align-items: flex-start; box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08); z-index: 20; }
-        .toast[data-tone="success"] { background: #0f1929; border-color: rgba(10, 132, 255, 0.25); }
-        .toast[data-tone="danger"] { background: #1a0f13; border-color: rgba(239, 68, 68, 0.35); }
-        .toast.show { display: flex; animation: slideIn 180ms ease; }
-        .toast strong { display: block; margin-bottom: 4px; }
-        .toast button { background: transparent; color: inherit; border: none; cursor: pointer; font-size: 16px; line-height: 1; padding: 4px; }
-        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; white-space: nowrap; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Custom Animations */
+        @keyframes slideInUp {
+            from {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-enter {
+            animation: slideInUp 0.4s ease-out forwards;
+        }
     </style>
 </head>
-<body>
-@php
-    // Surface server flash messages to the toast.
-    $toast = session('toast');
-    $flashMessage = $toast['message'] ?? session('status');
-    $flashTitle = $toast['title'] ?? 'Saved';
-    $flashTone = $toast['tone'] ?? 'success';
-@endphp
 
-<div class="shell">
-    <div class="page">
-        <div class="sr-only" aria-live="polite">
-            @if($flashMessage) {{ $flashMessage }} @endif
+<body
+    class="min-h-full text-slate-800 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-100/60 via-rose-50/40 to-white">
+
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <!-- Toast Container -->
+        <div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col gap-3">
+            @if(session('status'))
+                @php
+                    $toast = session('toast');
+                    $msg = $toast['message'] ?? session('status');
+                    $tone = $toast['tone'] ?? 'info';
+                    $title = $toast['title'] ?? 'Notification';
+                @endphp
+                <div class="toast-item transform transition-all duration-300 ease-out translate-y-0 opacity-100 flex items-start gap-4 w-80 bg-slate-900/90 text-white p-4 rounded-xl shadow-2xl backdrop-blur-md border border-white/10"
+                    role="alert">
+                    <div class="flex-1">
+                        <h4 class="font-bold text-sm tracking-wide text-indigo-400">{{ $title }}</h4>
+                        <p class="mt-1 text-sm text-slate-300 leading-relaxed">{{ $msg }}</p>
+                    </div>
+                    <button onclick="this.closest('.toast-item').remove()"
+                        class="text-slate-400 hover:text-white transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+            @endif
         </div>
 
-        @yield('content')
+        <main class="space-y-8 animate-enter">
+            @yield('content')
+        </main>
+
+        <footer class="mt-12 text-center text-sm text-slate-400">
+            <p>&copy; {{ date('Y') }} Todo App. Better, Faster, Premium.</p>
+        </footer>
     </div>
-</div>
 
-<!-- Toast sits at root so any page can trigger it -->
-<div class="toast" id="toast" role="status" aria-live="polite">
-    <div>
-        <strong id="toast-title">Heads up</strong>
-        <span id="toast-message">Something happened.</span>
-    </div>
-    <button type="button" aria-label="Dismiss toast">&times;</button>
-</div>
+    <!-- Global Scripts -->
+    <script>
+        // Premium Toast Manager
+        window.showToast = function (message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const el = document.createElement('div');
 
-<script>
-    // Minimal toast helper you can reuse anywhere.
-    (function () {
-        const toast = document.getElementById('toast');
-        const title = document.getElementById('toast-title');
-        const message = document.getElementById('toast-message');
-        const closeBtn = toast.querySelector('button');
-        let timer;
+            // Colors based on type
+            const colors = {
+                success: 'border-emerald-500/30 bg-slate-900/95',
+                danger: 'border-rose-500/30 bg-slate-900/95',
+                info: 'border-indigo-500/30 bg-slate-900/95'
+            };
 
-        function hideToast() {
-            toast.classList.remove('show');
-            clearTimeout(timer);
-        }
+            const titleColor = {
+                success: 'text-emerald-400',
+                danger: 'text-rose-400',
+                info: 'text-indigo-400'
+            };
 
-        // Show a toast with optional tone: success | info | danger.
-        function showToast(text, heading = 'Notice', tone = 'info', duration = 3200) {
-            title.textContent = heading;
-            message.textContent = text;
-            toast.dataset.tone = tone;
-            toast.classList.add('show');
-            clearTimeout(timer);
-            timer = setTimeout(hideToast, duration);
-        }
+            const titles = {
+                success: 'Success',
+                danger: 'Attention',
+                info: 'Note'
+            };
 
-        closeBtn.addEventListener('click', hideToast);
+            el.className = `toast-item transform translate-y-2 opacity-0 flex items-start gap-4 w-80 p-4 rounded-xl shadow-2xl backdrop-blur-md border border-white/10 transition-all duration-500 ease-out ${colors[type] || colors.info}`;
 
-        // Expose for inline triggers.
-        window.appToast = showToast;
+            el.innerHTML = `
+                <div class="flex-1">
+                    <h4 class="font-bold text-sm tracking-wide ${titleColor[type] || titleColor.info}">${titles[type]}</h4>
+                    <p class="mt-1 text-sm text-slate-300 leading-relaxed">${message}</p>
+                </div>
+                <button onclick="this.closest('.toast-item').remove()" class="text-slate-400 hover:text-white transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            `;
 
-        // Auto-open if a server flash exists.
-        @if($flashMessage)
-            showToast(@json($flashMessage), @json($flashTitle), @json($flashTone));
-        @endif
-    })();
-</script>
+            container.appendChild(el);
+
+            // Animate in
+            requestAnimationFrame(() => {
+                el.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            // Auto dismiss
+            setTimeout(() => {
+                el.classList.add('opacity-0', 'translate-x-full');
+                setTimeout(() => el.remove(), 300);
+            }, 1000);
+        };
+
+        // Auto-dismiss server-side toasts on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const serverToasts = document.querySelectorAll('.toast-item');
+            serverToasts.forEach(el => {
+                setTimeout(() => {
+                    el.classList.add('opacity-0', 'translate-x-full');
+                    setTimeout(() => el.remove(), 300);
+                }, 1000);
+            });
+        });
+
+        // AJAX Toggle Functionality
+        document.addEventListener('click', async function (e) {
+            if (e.target.closest('.ajax-toggle')) {
+                e.preventDefault();
+                const btn = e.target.closest('.ajax-toggle');
+                const form = btn.closest('form');
+                const url = form.action;
+
+                // Visual feedback immediate
+                const card = btn.closest('.todo-card');
+                if (card) {
+                    card.classList.toggle('opacity-60');
+                }
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        body: new FormData(form),
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        showToast(data.message, data.tone);
+
+                        // Update UI directly instead of reloading
+                        const isDone = data.is_done;
+
+                        // Toggle Card Opacity/Background
+                        if (isDone) {
+                            card.classList.add('opacity-60', 'bg-slate-50');
+                        } else {
+                            card.classList.remove('opacity-60', 'bg-slate-50');
+                        }
+
+                        // Toggle Button Style
+                        if (isDone) {
+                            btn.className = 'ajax-toggle w-6 h-6 rounded-full border-2 flex items-center justify-center bg-emerald-500 border-emerald-500';
+                            btn.innerHTML = `<svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>`;
+                        } else {
+                            btn.className = 'ajax-toggle w-6 h-6 rounded-full border-2 flex items-center justify-center border-slate-300 group-hover:border-indigo-500';
+                            btn.innerHTML = '';
+                        }
+
+                        // Toggle Strike-through
+                        const titleEl = card.querySelector('h3');
+                        if (titleEl) isDone ? titleEl.classList.add('line-through', 'text-slate-400') : titleEl.classList.remove('line-through', 'text-slate-400');
+
+                        const descEl = card.querySelector('p.text-slate-600');
+                        if (descEl) isDone ? descEl.classList.add('line-through', 'text-slate-400') : descEl.classList.remove('line-through', 'text-slate-400');
+
+                    } else {
+                        throw new Error('Action failed');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    showToast('Something went wrong.', 'danger');
+                    if (card) card.classList.toggle('opacity-60'); // Revert
+                }
+            }
+        });
+
+
+    </script>
 </body>
+
 </html>

@@ -17,6 +17,14 @@ class Todo extends Model
     protected $fillable = [
         'title',
         'description',
+        'priority',
+        'due_date',
+        'tags',
         'is_done',
+    ];
+
+    protected $casts = [
+        'is_done' => 'boolean',
+        'due_date' => 'date',
     ];
 }
