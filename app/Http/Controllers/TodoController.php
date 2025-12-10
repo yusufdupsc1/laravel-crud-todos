@@ -39,7 +39,9 @@ class TodoController extends Controller
 
         Todo::create($data);
 
-        return redirect()->route('todos.index')->with('status', 'Todo created.');
+        return redirect()->route('todos.index')->with(
+            $this->toast('Todo created.', 'success', 'Added')
+        );
     }
 
     /**
@@ -66,7 +68,9 @@ class TodoController extends Controller
 
         $todo->update($data);
 
-        return redirect()->route('todos.index')->with('status', 'Todo updated.');
+        return redirect()->route('todos.index')->with(
+            $this->toast('Todo updated.', 'success', 'Updated')
+        );
     }
 
     /**
@@ -76,7 +80,9 @@ class TodoController extends Controller
     {
         $todo->delete();
 
-        return redirect()->route('todos.index')->with('status', 'Todo deleted.');
+        return redirect()->route('todos.index')->with(
+            $this->toast('Todo deleted.', 'danger', 'Removed')
+        );
     }
 
     /**
@@ -84,10 +90,39 @@ class TodoController extends Controller
      */
     public function toggle(Todo $todo)
     {
+        $nextState = ! $todo->is_done;
+
         $todo->update([
-            'is_done' => ! $todo->is_done,
+            'is_done' => $nextState,
         ]);
 
-        return redirect()->route('todos.index')->with('status', 'Todo status updated.');
+        return redirect()->route('todos.index')->with(
+            $this->toast(
+                $nextState ? 'Marked as done.' : 'Marked as pending.',
+                $nextState ? 'success' : 'info',
+                $nextState ? 'Completed' : 'Pending'
+            )
+        );
+    }
+
+    /**
+     * Shape a consistent toast payload for the UI.
+     */
+    private function toast(string $message, string $tone = 'info', ?string $title = null): array
+    {
+        $title ??= match ($tone) {
+            'success' => 'Success',
+            'danger' => 'Removed',
+            default => 'Notice',
+        };
+
+        return [
+            'toast' => [
+                'message' => $message,
+                'tone' => $tone,
+                'title' => $title,
+            ],
+            'status' => $message,
+        ];
     }
 }
