@@ -13,7 +13,7 @@
 
         <div
             class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 p-6 md:p-8 border border-white/50 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 via-rose-500 to-purple-600"></div>
 
             <form action="{{ route('todos.update', $todo) }}" method="POST" class="space-y-6">
                 @csrf
@@ -21,7 +21,7 @@
 
                 <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 mb-2">
                     <input type="checkbox" id="is_done" name="is_done"
-                        class="w-5 h-5 text-indigo-600 accent-indigo-600 rounded focus:ring-indigo-500 border-gray-300" {{ $todo->is_done ? 'checked' : '' }}>
+                        class="w-5 h-5 text-rose-600 accent-rose-600 rounded focus:ring-rose-500 border-gray-300" {{ $todo->is_done ? 'checked' : '' }}>
                     <label for="is_done" class="text-sm font-semibold text-slate-700 cursor-pointer select-none">Mark this
                         task as completed</label>
                 </div>
