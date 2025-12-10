@@ -42,6 +42,10 @@ class TodoController extends Controller
             ->latest()
             ->get();
 
+        if ($request->ajax()) {
+            return view('todos.partials.todo-list', compact('todos'))->render();
+        }
+
         return view('todos.index', compact('todos'));
     }
 
