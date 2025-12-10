@@ -6,7 +6,7 @@
             <h1
                 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-rose-500 to-purple-600">
                 Todo List</h1>
-            <p class="text-slate-500 mt-1 font-medium">{{ count($todos) }} tasks remaining</p>
+            <p class="text-slate-500 mt-1 font-medium"><span id="tasks-count">{{ $undoneCount }}</span> tasks remaining</p>
         </div>
         <a href="{{ route('todos.create') }}"
             class="group relative inline-flex items-center justify-center px-6 py-3 text-sm font-bold text-white transition-all duration-200 bg-gradient-to-r from-rose-500 to-orange-500 rounded-xl hover:from-rose-600 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 shadow-lg shadow-rose-200">

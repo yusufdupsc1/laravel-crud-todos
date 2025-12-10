@@ -42,11 +42,13 @@ class TodoController extends Controller
             ->latest()
             ->get();
 
+        $undoneCount = Todo::where('is_done', false)->count();
+
         if ($request->ajax()) {
             return view('todos.partials.todo-list', compact('todos'))->render();
         }
 
-        return view('todos.index', compact('todos'));
+        return view('todos.index', compact('todos', 'undoneCount'));
     }
 
     /**
@@ -144,6 +146,7 @@ class TodoController extends Controller
                 'message' => $nextState ? 'Marked as done.' : 'Marked as pending.',
                 'tone' => $nextState ? 'success' : 'info',
                 'is_done' => $nextState,
+                'undone_count' => Todo::where('is_done', false)->count(),
             ]);
         }
 

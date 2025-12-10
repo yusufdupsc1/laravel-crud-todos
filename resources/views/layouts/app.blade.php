@@ -256,10 +256,10 @@
 
                         // Toggle Button Style
                         if (isDone) {
-                            btn.className = 'ajax-toggle w-6 h-6 rounded-full border-2 flex items-center justify-center bg-emerald-500 border-emerald-500';
+                            btn.className = 'ajax-toggle w-6 h-6 rounded-full border-2 flex items-center justify-center bg-rose-500 border-rose-500';
                             btn.innerHTML = `<svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>`;
                         } else {
-                            btn.className = 'ajax-toggle w-6 h-6 rounded-full border-2 flex items-center justify-center border-slate-300 group-hover:border-indigo-500';
+                            btn.className = 'ajax-toggle w-6 h-6 rounded-full border-2 flex items-center justify-center border-slate-300 group-hover:border-rose-500';
                             btn.innerHTML = '';
                         }
 
@@ -269,6 +269,12 @@
 
                         const descEl = card.querySelector('p.text-slate-600');
                         if (descEl) isDone ? descEl.classList.add('line-through', 'text-slate-400') : descEl.classList.remove('line-through', 'text-slate-400');
+
+                        // Update tasks remaining count
+                        if (data.undone_count !== undefined) {
+                            const countEl = document.getElementById('tasks-count');
+                            if (countEl) countEl.innerText = data.undone_count;
+                        }
 
                     } else {
                         throw new Error('Action failed');
