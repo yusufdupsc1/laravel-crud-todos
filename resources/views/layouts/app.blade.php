@@ -94,8 +94,20 @@
             @yield('content')
         </main>
 
-        <footer class="mt-12 text-center text-sm text-slate-400">
-            <p>&copy; {{ date('Y') }} Todo App. Better, Faster, Premium.</p>
+        <footer class="mt-16 text-center space-y-4">
+            <p class="text-sm text-slate-400">&copy; {{ date('Y') }} Todo App. Better, Faster, Premium.</p>
+            <div class="flex items-center justify-center gap-1 text-xs font-medium text-slate-500">
+                <span>Fueled by ☕ & pure will. Built by</span>
+                <a href="https://github.com/yusufdupsc1" target="_blank"
+                    class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600 font-bold hover:opacity-80 transition-opacity">
+                    @yusufdupsc1
+                </a>
+                <span>&</span>
+                <a href="https://github.com/omarbg" target="_blank"
+                    class="bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-orange-500 font-bold hover:opacity-80 transition-opacity">
+                    @OmarFaruk
+                </a>
+            </div>
         </footer>
     </div>
 
