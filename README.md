@@ -44,6 +44,33 @@ laravel-crud-todos/
     └── web.php                  <-- The "Map". Defines URL paths (like /todos/create).
 ```
 
+
+### 🏗 System Design Architecture
+
+Here is a high-level overview of how the requests flow through the system:
+
+```mermaid
+graph TD
+    Client[Client / Browser] -->|HTTP Request| Route[Routes / web.php]
+    Route -->|Dispatch| Controller[TodoController]
+    
+    subgraph "Application Logic"
+        Controller -->|Validate Request| Validator[Validation Logic]
+        Controller -->|CRUD Operations| Model[Todo Model]
+    end
+    
+    subgraph "Data Layer"
+        Model <-->|SQL Query / Result| DB[(Database / MySQL)]
+    end
+    
+    Controller -->|Pass Data| View[Blade Views]
+    View -->|Render HTML| Client
+    
+    style Client fill:#f9f,stroke:#333,stroke-width:2px
+    style Controller fill:#bbf,stroke:#333,stroke-width:2px
+    style DB fill:#bfb,stroke:#333,stroke-width:2px
+```
+
 ### 🧠 How It Works (The Flow)
 
 1.  **The Route**: When you visit the site, `web.php` directs traffic to the...
@@ -104,8 +131,11 @@ Visit `http://127.0.0.1:8000` in your browser and start getting organized!
 
 This project was built with ❤️ and coffee. If you found this helpful or want to see more of our work, come say hi!
 
-**👨‍💻 Yusuf**
-*   **GitHub**: [@yusufdupsc1](https://github.com/yusufdupsc1)
-*   Check out my other repositories for more cool Web Development projects!
+**👨‍💻 Development Team**
+
+| Contributor | Role | GitHub |
+| :--- | :--- | :--- |
+| **Omar Faruk** | Lead Developer | [@OmarFaruk](https://github.com/omarbg) |
+| **Yusuf** | Project Creator | [@yusufdupsc1](https://github.com/yusufdupsc1) |
 
 Feel free to fork this project, submit PRs, or star the repo if it helped you learn something new today. Happy coding!
