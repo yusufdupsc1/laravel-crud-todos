@@ -3,7 +3,8 @@
 A beautiful, robust, and user-friendly Task Management application built with **Laravel**. This isn't just another boring CRUD app; it's designed with a premium user interface, smooth interactions, and a codebase that's easy for beginners to understand and extend.
 
 ![Application Preview](assets/screenshot.png)
-*(Note: Drop your screenshot in an `assets` folder and name it `screenshot.png` to see it here!)*
+
+
 
 ---
 
