@@ -87,7 +87,7 @@
                     <a href="{{ route('todos.index') }}"
                         class="px-6 py-3 bg-white text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-slate-800 transition-all font-bold shadow-sm">Cancel</a>
                     <button type="submit"
-                        class="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5">
+                        class="px-8 py-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl shadow-lg shadow-rose-200 transition-all hover:-translate-y-0.5">
                         Update Task
                     </button>
                 </div>
